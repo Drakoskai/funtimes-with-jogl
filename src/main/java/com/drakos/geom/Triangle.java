@@ -6,7 +6,9 @@ import static com.drakos.util.GLBuffer.VERTEX;
 import static com.jogamp.opengl.GL.GL_TRIANGLES;
 import static com.jogamp.opengl.GL.GL_UNSIGNED_INT;
 import com.jogamp.opengl.GL4;
+import com.jogamp.opengl.math.FloatUtil;
 import java.nio.Buffer;
+import java.nio.ByteBuffer;
 
 /**
  *
@@ -25,11 +27,40 @@ public class Triangle {
         0, 2, 1
     };
     private final Geometry mesh;
+    private float[] scaleMatrix = new float[16];
+    private float[] zRotazionMatrix = new float[16];
+    private float[] modelToClipMatrix = new float[16];
+
+    private float h = 0.5f;
+    private float w = 0.5f;
+    private float d = 0.5f;
 
     public Triangle() {
         mesh = new Geometry();
         mesh.setVertexData(vertexCount, vertexData);
         mesh.setElementData(GL_TRIANGLES, elementCount, elementData);
+    }
+
+    public void setSize(float h, float w, float d) {
+        this.h = h;
+        this.w = w;
+        this.d = d;
+    }
+
+    public float[] getSize() {
+        return new float[]{h, w, d};
+    }
+
+    public void update(float dt, ByteBuffer transformPointer) {
+        scaleMatrix = FloatUtil.makeScale(scaleMatrix, true, h, w, d);
+        zRotazionMatrix = FloatUtil.makeRotationEuler(zRotazionMatrix, 0, 0, 0, dt);
+        modelToClipMatrix = FloatUtil.multMatrix(scaleMatrix, zRotazionMatrix);
+        transformPointer.asFloatBuffer().put(modelToClipMatrix);
+    }
+
+    public void fillVBO(GL4 gl, int program, int voaId) {
+        gl.glUseProgram(program);
+        gl.glBindVertexArray(voaId);
     }
 
     public void drawTriangle(GL4 gl) {

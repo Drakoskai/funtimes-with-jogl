@@ -12,6 +12,8 @@ import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Screen;
 import com.jogamp.newt.event.KeyEvent;
 import com.jogamp.newt.event.KeyListener;
+import com.jogamp.newt.event.MouseEvent;
+import com.jogamp.newt.event.MouseListener;
 import com.jogamp.newt.opengl.GLWindow;
 import static com.jogamp.opengl.GL.GL_ARRAY_BUFFER;
 import static com.jogamp.opengl.GL.GL_DEPTH_TEST;
@@ -53,7 +55,7 @@ import org.junit.Test;
  *
  * @author Drakos
  */
-public class GLTest implements GLEventListener, KeyListener {
+public class GLTest implements GLEventListener, KeyListener, MouseListener {
 
     private final AtomicBoolean isRunning = new AtomicBoolean(true);
 
@@ -97,6 +99,7 @@ public class GLTest implements GLEventListener, KeyListener {
         glWindow.setVisible(true);
         glWindow.addGLEventListener(this);
         glWindow.addKeyListener(this);
+        glWindow.addMouseListener(this);
 
         animator = new Animator(glWindow);
         animator.start();
@@ -213,18 +216,20 @@ public class GLTest implements GLEventListener, KeyListener {
         gl4.glClearBufferfv(GL_DEPTH, 0, clearDepth);
         now = System.currentTimeMillis();
         float diff = (float) (now - start) / 1000;
-        scale = FloatUtil.makeScale(scale, true, 0.5f, 0.5f, 0.5f);
-        zRotazion = FloatUtil.makeRotationEuler(zRotazion, 0, 0, 0, diff);
-        modelToClip = FloatUtil.multMatrix(scale, zRotazion);
+        tri.update(diff, transformPointer);
 
-        transformPointer.asFloatBuffer().put(modelToClip);
-
-        gl4.glUseProgram(programName);
-        gl4.glBindVertexArray(vertexArrayName.get(0));
+        tri.fillVBO(gl4, programName, vertexArrayName.get(0));
 
         gl4.glBindBufferBase(GL_UNIFORM_BUFFER, Semantic.Uniform.TRANSFORM0, bufferName.get(GLBuffer.TRANSFORM.id()));
 
         tri.drawTriangle(gl4);
+    }
+
+    @Override
+    public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
+        System.out.println("reshape");
+        GL4 gl4 = drawable.getGL().getGL4();
+        gl4.glViewport(x, y, width, height);
     }
 
     @Override
@@ -249,13 +254,6 @@ public class GLTest implements GLEventListener, KeyListener {
     }
 
     @Override
-    public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
-        System.out.println("reshape");
-        GL4 gl4 = drawable.getGL().getGL4();
-        gl4.glViewport(x, y, width, height);
-    }
-
-    @Override
     public void keyPressed(KeyEvent e) {
         if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
             animator.stop();
@@ -264,5 +262,44 @@ public class GLTest implements GLEventListener, KeyListener {
 
     @Override
     public void keyReleased(KeyEvent e) {
+    }
+
+    @Override
+    public void mouseClicked(MouseEvent e) {
+    }
+
+    @Override
+    public void mouseEntered(MouseEvent e) {
+    }
+
+    @Override
+    public void mouseExited(MouseEvent e) {
+    }
+
+    @Override
+    public void mousePressed(MouseEvent e) {
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e) {
+    }
+
+    @Override
+    public void mouseMoved(MouseEvent e) {
+    }
+
+    @Override
+    public void mouseDragged(MouseEvent e) {
+    }
+
+    @Override
+    public void mouseWheelMoved(MouseEvent e) {
+        float[] size = tri.getSize();
+        float h = size[0] + (e.getRotation()[1] * .01f);
+        float w = size[1] + (e.getRotation()[1] * .01f);
+        float d = size[2] + (e.getRotation()[1] * .01f);
+
+        // System.out.println(e.getRotation()[1]);
+        tri.setSize(h, w, d);
     }
 }
