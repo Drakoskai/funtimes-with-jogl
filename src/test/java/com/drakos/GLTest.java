@@ -38,7 +38,6 @@ import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLContext;
 import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.GLProfile;
-import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.GLBuffers;
 import com.jogamp.opengl.util.glsl.ShaderCode;
@@ -65,10 +64,6 @@ public class GLTest implements GLEventListener, KeyListener, MouseListener {
     private final String SHADERS_NAME = "hello-triangle";
 
     private final Triangle tri = new Triangle();
-
-    private float[] scale = new float[16];
-    private float[] zRotazion = new float[16];
-    private float[] modelToClip = new float[16];
 
     private long start;
     private long now;
@@ -216,13 +211,13 @@ public class GLTest implements GLEventListener, KeyListener, MouseListener {
         gl4.glClearBufferfv(GL_DEPTH, 0, clearDepth);
         now = System.currentTimeMillis();
         float diff = (float) (now - start) / 1000;
-        tri.update(diff, transformPointer);
-
-        tri.fillVBO(gl4, programName, vertexArrayName.get(0));
-
+        
+        tri.prerender(transformPointer, diff, gl4, programName, vertexArrayName.get(0));
+        
+        // :(
         gl4.glBindBufferBase(GL_UNIFORM_BUFFER, Semantic.Uniform.TRANSFORM0, bufferName.get(GLBuffer.TRANSFORM.id()));
 
-        tri.drawTriangle(gl4);
+        tri.render(gl4);
     }
 
     @Override

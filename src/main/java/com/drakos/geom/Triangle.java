@@ -1,5 +1,7 @@
 package com.drakos.geom;
 
+import com.drakos.Prerenderable;
+import com.drakos.Renderable;
 import com.drakos.util.GLBuffer;
 import static com.drakos.util.GLBuffer.ELEMENT;
 import static com.drakos.util.GLBuffer.VERTEX;
@@ -14,7 +16,7 @@ import java.nio.ByteBuffer;
  *
  * @author Drakos
  */
-public class Triangle {
+public class Triangle implements Renderable, Prerenderable {
 
     private final int vertexCount = 3;
     private final float[] vertexData = new float[]{
@@ -22,11 +24,21 @@ public class Triangle {
         +0, +2,/**/ 0, 0, 1,
         +1, -1,/**/ 0, 1, 0
     };
+
+    private final int colorCount = 3;
+    private final float[] colorData = new float[]{
+        1, 0, 0,
+        0, 0, 1,
+        0, 1, 0
+    };
+
     private final int elementCount = 3;
     private final int[] elementData = new int[]{
         0, 2, 1
     };
+    
     private final Geometry mesh;
+    
     private float[] scaleMatrix = new float[16];
     private float[] zRotazionMatrix = new float[16];
     private float[] modelToClipMatrix = new float[16];
@@ -51,11 +63,15 @@ public class Triangle {
         return new float[]{h, w, d};
     }
 
-    public void update(float dt, ByteBuffer transformPointer) {
+    @Override
+    public void prerender(ByteBuffer transformPointer, float dt, GL4 gl, int program, int voaId) {
         scaleMatrix = FloatUtil.makeScale(scaleMatrix, true, h, w, d);
         zRotazionMatrix = FloatUtil.makeRotationEuler(zRotazionMatrix, 0, 0, 0, dt);
         modelToClipMatrix = FloatUtil.multMatrix(scaleMatrix, zRotazionMatrix);
+
         transformPointer.asFloatBuffer().put(modelToClipMatrix);
+
+        fillVBO(gl, program, voaId);
     }
 
     public void fillVBO(GL4 gl, int program, int voaId) {
@@ -63,7 +79,8 @@ public class Triangle {
         gl.glBindVertexArray(voaId);
     }
 
-    public void drawTriangle(GL4 gl) {
+    @Override
+    public void render(GL4 gl) {
         gl.glDrawElements(GL_TRIANGLES, getCount(ELEMENT), GL_UNSIGNED_INT, 0);
     }
 
@@ -77,9 +94,5 @@ public class Triangle {
 
     public long getSizeInBytes(GLBuffer type) {
         return mesh.getSizeInBytes(VERTEX);
-    }
-
-    public void rotate() {
-
     }
 }
