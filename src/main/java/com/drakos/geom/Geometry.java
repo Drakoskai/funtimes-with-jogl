@@ -70,7 +70,6 @@ public class Geometry {
         int colorElements = 3;
         int positionElements = 2;
         this.stride[VERTEX.id()] = (colorElements + positionElements) * Float.BYTES;
-        
     }
 
     public int getStride(GLBuffer type) {

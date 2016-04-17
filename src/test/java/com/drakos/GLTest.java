@@ -4,9 +4,6 @@ import com.drakos.geom.Triangle;
 import com.drakos.shader.ShaderContainer;
 import com.drakos.util.GLBuffer;
 import com.drakos.util.BufferUtils;
-import com.drakos.util.GLAttrib;
-import static com.drakos.util.GLAttrib.COLOR;
-import static com.drakos.util.GLAttrib.POSITION;
 import static com.drakos.util.GLBuffer.ELEMENT;
 import static com.drakos.util.GLBuffer.VERTEX;
 import com.drakos.util.GLDebugOutputListener;
@@ -173,15 +170,15 @@ public class GLTest implements GLEventListener, KeyListener, MouseListener {
         IntBuffer vertexArrayName = GLBuffers.newDirectIntBuffer(1);
         gl4.glCreateVertexArrays(1, vertexArrayName);
 
-        gl4.glVertexArrayAttribBinding(vertexArrayName.get(0), POSITION.getIndex(), Semantic.Stream._0);
-        gl4.glVertexArrayAttribBinding(vertexArrayName.get(0), COLOR.getIndex(), Semantic.Stream._0);
+        gl4.glVertexArrayAttribBinding(vertexArrayName.get(0), Semantic.Attr.POSITION, Semantic.Stream._0);
+        gl4.glVertexArrayAttribBinding(vertexArrayName.get(0), Semantic.Attr.COLOR, Semantic.Stream._0);
 
-        gl4.glVertexArrayAttribFormat(vertexArrayName.get(0), POSITION.getIndex(), POSITION.getSize(), POSITION.getType(), false, POSITION.getOffset());
-        gl4.glVertexArrayAttribFormat(vertexArrayName.get(0),  COLOR.getIndex(), COLOR.getSize(), COLOR.getType(), false, COLOR.getOffset());
+        gl4.glVertexArrayAttribFormat(vertexArrayName.get(0), Semantic.Attr.POSITION, 2, GL_FLOAT, false, 0);
+        gl4.glVertexArrayAttribFormat(vertexArrayName.get(0), Semantic.Attr.COLOR, 3, GL_FLOAT, false, 2 * Float.BYTES);
 
-        gl4.glEnableVertexArrayAttrib(vertexArrayName.get(0), POSITION.getIndex());
-        gl4.glEnableVertexArrayAttrib(vertexArrayName.get(0), COLOR.getIndex());
-
+        gl4.glEnableVertexArrayAttrib(vertexArrayName.get(0), Semantic.Attr.POSITION);
+        gl4.glEnableVertexArrayAttrib(vertexArrayName.get(0), Semantic.Attr.COLOR);
+        
         gl4.glVertexArrayElementBuffer(vertexArrayName.get(0), bufferName.get(GLBuffer.ELEMENT.id()));
         gl4.glVertexArrayVertexBuffer(vertexArrayName.get(0), Semantic.Stream._0, bufferName.get(GLBuffer.VERTEX.id()), 0, tri.getStride(VERTEX));
 
@@ -277,7 +274,7 @@ public class GLTest implements GLEventListener, KeyListener, MouseListener {
         float h = size[0] + (e.getRotation()[1] * .01f);
         float w = size[1] + (e.getRotation()[1] * .01f);
         float d = size[2] + (e.getRotation()[1] * .01f);
-
+        
         tri.setSize(h, w, d);
     }
 }
