@@ -17,6 +17,7 @@ public class Geometry {
     private final int[] mode;
     private final int[] count;
     private final int[] size;
+    private final int[] stride;
     private final int[] glType;
     private final Buffer[] buffer;
 
@@ -25,6 +26,7 @@ public class Geometry {
         this.count = new int[4];
         this.size = new int[4];
         this.glType = new int[4];
+        this.stride = new int[4];
         this.buffer = new Buffer[4];
     }
 
@@ -65,6 +67,13 @@ public class Geometry {
         this.size[VERTEX.id()] = size;
         this.glType[VERTEX.id()] = GL.GL_FLOAT;
         this.count[VERTEX.id()] = 3;
+        int colorElements = 3;
+        int positionElements = 2;
+        this.stride[VERTEX.id()] = (colorElements + positionElements) * Float.BYTES;
+    }
+
+    public int getStride(GLBuffer type) {
+        return stride[type.id()];
     }
 
     public long getSizeInBytes(GLBuffer type) {
@@ -76,6 +85,7 @@ public class Geometry {
         if (this.buffer[type.id()] != null) {
             sz = this.sizeOf(this.glType[type.id()]) * this.getCount(type) * this.size[type.id()];
         }
+
         return sz;
     }
 

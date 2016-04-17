@@ -20,16 +20,19 @@ public class Triangle {
     private final float[] vertexData = new float[]{
         -1, -1,/**/ 1, 0, 0,
         +0, +2,/**/ 0, 0, 1,
-        +1, -1,/**/ 0, 1, 0
-    };
+        +1, -1,/**/ 0, 1, 0};
     private final int elementCount = 3;
     private final int[] elementData = new int[]{
         0, 2, 1
     };
+
     private final Geometry mesh;
     private float[] scaleMatrix = new float[16];
-    private float[] zRotazionMatrix = new float[16];
+    private float[] zRotationMatrix = new float[16];
     private float[] modelToClipMatrix = new float[16];
+
+    private int shaderProgId;
+    private int voaId;
 
     private float h = 0.5f;
     private float w = 0.5f;
@@ -39,6 +42,18 @@ public class Triangle {
         mesh = new Geometry();
         mesh.setVertexData(vertexCount, vertexData);
         mesh.setElementData(GL_TRIANGLES, elementCount, elementData);
+    }
+
+    public void init(GL4 gl) {
+
+    }
+
+    public void setShader(int shader) {
+        shaderProgId = shader;
+    }
+
+    public void setVoaId(int voaId) {
+        this.voaId = voaId;
     }
 
     public void setSize(float h, float w, float d) {
@@ -53,17 +68,15 @@ public class Triangle {
 
     public void update(float dt, ByteBuffer transformPointer) {
         scaleMatrix = FloatUtil.makeScale(scaleMatrix, true, h, w, d);
-        zRotazionMatrix = FloatUtil.makeRotationEuler(zRotazionMatrix, 0, 0, 0, dt);
-        modelToClipMatrix = FloatUtil.multMatrix(scaleMatrix, zRotazionMatrix);
+        zRotationMatrix = FloatUtil.makeRotationEuler(zRotationMatrix, 0, 0, 0, dt);
+        modelToClipMatrix = FloatUtil.multMatrix(scaleMatrix, zRotationMatrix);
+
         transformPointer.asFloatBuffer().put(modelToClipMatrix);
     }
 
-    public void fillVBO(GL4 gl, int program, int voaId) {
-        gl.glUseProgram(program);
-        gl.glBindVertexArray(voaId);
-    }
-
     public void drawTriangle(GL4 gl) {
+        gl.glUseProgram(shaderProgId);
+        gl.glBindVertexArray(voaId);
         gl.glDrawElements(GL_TRIANGLES, getCount(ELEMENT), GL_UNSIGNED_INT, 0);
     }
 
@@ -75,11 +88,15 @@ public class Triangle {
         return mesh.getCount(type);
     }
 
+    public int getStride(GLBuffer type) {
+        return mesh.getStride(type);
+    }
+
     public long getSizeInBytes(GLBuffer type) {
         return mesh.getSizeInBytes(VERTEX);
     }
 
-    public void rotate() {
+    public void dispose() {
 
     }
 }

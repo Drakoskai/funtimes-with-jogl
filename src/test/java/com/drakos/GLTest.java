@@ -1,6 +1,7 @@
 package com.drakos;
 
 import com.drakos.geom.Triangle;
+import com.drakos.shader.ShaderContainer;
 import com.drakos.util.GLBuffer;
 import com.drakos.util.BufferUtils;
 import static com.drakos.util.GLBuffer.ELEMENT;
@@ -24,8 +25,6 @@ import static com.jogamp.opengl.GL.GL_MAP_INVALIDATE_BUFFER_BIT;
 import static com.jogamp.opengl.GL.GL_MAP_WRITE_BIT;
 import static com.jogamp.opengl.GL2ES2.GL_DEBUG_SEVERITY_HIGH;
 import static com.jogamp.opengl.GL2ES2.GL_DEBUG_SEVERITY_MEDIUM;
-import static com.jogamp.opengl.GL2ES2.GL_FRAGMENT_SHADER;
-import static com.jogamp.opengl.GL2ES2.GL_VERTEX_SHADER;
 import static com.jogamp.opengl.GL2ES3.GL_COLOR;
 import static com.jogamp.opengl.GL2ES3.GL_DEPTH;
 import static com.jogamp.opengl.GL2ES3.GL_UNIFORM_BUFFER;
@@ -38,11 +37,8 @@ import com.jogamp.opengl.GLCapabilities;
 import com.jogamp.opengl.GLContext;
 import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.GLProfile;
-import com.jogamp.opengl.math.FloatUtil;
 import com.jogamp.opengl.util.Animator;
 import com.jogamp.opengl.util.GLBuffers;
-import com.jogamp.opengl.util.glsl.ShaderCode;
-import com.jogamp.opengl.util.glsl.ShaderProgram;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
@@ -61,20 +57,15 @@ public class GLTest implements GLEventListener, KeyListener, MouseListener {
 
     private GLWindow glWindow;
     private Animator animator;
-    private final String SHADERS_ROOT = "/shaders";
-    private final String SHADERS_NAME = "hello-triangle";
+    private final ShaderContainer shaderContainer = new ShaderContainer();
 
     private final Triangle tri = new Triangle();
-
-    private float[] scale = new float[16];
-    private float[] zRotazion = new float[16];
-    private float[] modelToClip = new float[16];
 
     private long start;
     private long now;
     private IntBuffer bufferName = GLBuffers.newDirectIntBuffer(GLBuffer.MAX.id());
-    private IntBuffer vertexArrayName = GLBuffers.newDirectIntBuffer(1);
-    private int programName;
+
+    //private int programName;
     private FloatBuffer clearColor = GLBuffers.newDirectFloatBuffer(new float[]{1.0f, 0.5f, 0.0f, 1.0f});
     private FloatBuffer clearDepth = GLBuffers.newDirectFloatBuffer(new float[]{1.0f});
     private ByteBuffer transformPointer;
@@ -121,7 +112,7 @@ public class GLTest implements GLEventListener, KeyListener, MouseListener {
 
         initVertexArray(gl4);
 
-        initProgram(gl4);
+        tri.setShader(shaderContainer.initShaderProgram(gl4, "hello-triangle"));
 
         // map the transform buffer and keep it mapped
         transformPointer = gl4.glMapNamedBufferRange(bufferName.get(GLBuffer.TRANSFORM.id()), // buffer
@@ -176,7 +167,7 @@ public class GLTest implements GLEventListener, KeyListener, MouseListener {
     }
 
     private void initVertexArray(GL4 gl4) {
-
+        IntBuffer vertexArrayName = GLBuffers.newDirectIntBuffer(1);
         gl4.glCreateVertexArrays(1, vertexArrayName);
 
         gl4.glVertexArrayAttribBinding(vertexArrayName.get(0), Semantic.Attr.POSITION, Semantic.Stream._0);
@@ -187,25 +178,12 @@ public class GLTest implements GLEventListener, KeyListener, MouseListener {
 
         gl4.glEnableVertexArrayAttrib(vertexArrayName.get(0), Semantic.Attr.POSITION);
         gl4.glEnableVertexArrayAttrib(vertexArrayName.get(0), Semantic.Attr.COLOR);
-
+        
         gl4.glVertexArrayElementBuffer(vertexArrayName.get(0), bufferName.get(GLBuffer.ELEMENT.id()));
-        gl4.glVertexArrayVertexBuffer(vertexArrayName.get(0), Semantic.Stream._0, bufferName.get(GLBuffer.VERTEX.id()), 0, (3 + 2) * Float.BYTES);
-    }
+        gl4.glVertexArrayVertexBuffer(vertexArrayName.get(0), Semantic.Stream._0, bufferName.get(GLBuffer.VERTEX.id()), 0, tri.getStride(VERTEX));
 
-    private void initProgram(GL4 gl4) {
-
-        ShaderCode vertShader = ShaderCode.create(gl4, GL_VERTEX_SHADER, this.getClass(), SHADERS_ROOT, null, SHADERS_NAME, "vert", null, true);
-        ShaderCode fragShader = ShaderCode.create(gl4, GL_FRAGMENT_SHADER, this.getClass(), SHADERS_ROOT, null, SHADERS_NAME, "frag", null, true);
-
-        ShaderProgram shaderProgram = new ShaderProgram();
-        shaderProgram.add(vertShader);
-        shaderProgram.add(fragShader);
-
-        shaderProgram.init(gl4);
-
-        programName = shaderProgram.program();
-
-        shaderProgram.link(gl4, System.out);
+        tri.setVoaId(vertexArrayName.get(0));
+        BufferUtils.destroyDirectBuffer(vertexArrayName);
     }
 
     @Override
@@ -216,9 +194,8 @@ public class GLTest implements GLEventListener, KeyListener, MouseListener {
         gl4.glClearBufferfv(GL_DEPTH, 0, clearDepth);
         now = System.currentTimeMillis();
         float diff = (float) (now - start) / 1000;
-        tri.update(diff, transformPointer);
 
-        tri.fillVBO(gl4, programName, vertexArrayName.get(0));
+        tri.update(diff, transformPointer);
 
         gl4.glBindBufferBase(GL_UNIFORM_BUFFER, Semantic.Uniform.TRANSFORM0, bufferName.get(GLBuffer.TRANSFORM.id()));
 
@@ -240,11 +217,10 @@ public class GLTest implements GLEventListener, KeyListener, MouseListener {
 
         gl4.glUnmapNamedBuffer(bufferName.get(GLBuffer.TRANSFORM.id()));
 
-        gl4.glDeleteProgram(programName);
-        gl4.glDeleteVertexArrays(1, vertexArrayName);
+        //gl4.glDeleteVertexArrays(1, vertexArrayName);
         gl4.glDeleteBuffers(GLBuffer.MAX.id(), bufferName);
 
-        BufferUtils.destroyDirectBuffer(vertexArrayName);
+        //BufferUtils.destroyDirectBuffer(vertexArrayName);
         BufferUtils.destroyDirectBuffer(bufferName);
 
         BufferUtils.destroyDirectBuffer(clearColor);
@@ -298,8 +274,7 @@ public class GLTest implements GLEventListener, KeyListener, MouseListener {
         float h = size[0] + (e.getRotation()[1] * .01f);
         float w = size[1] + (e.getRotation()[1] * .01f);
         float d = size[2] + (e.getRotation()[1] * .01f);
-
-        // System.out.println(e.getRotation()[1]);
+        
         tri.setSize(h, w, d);
     }
 }
