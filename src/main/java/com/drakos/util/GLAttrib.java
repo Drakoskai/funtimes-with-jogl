@@ -10,7 +10,6 @@ public enum GLAttrib {
     POSITION(0, 3, GL_FLOAT, 0),
     //NORMAL(1, 3, GL_FLOAT, POSITION.size * Float.BYTES),//not implemented
     COLOR(3, 3, GL_FLOAT, POSITION.size * Float.BYTES);
-    //TEXCOORD();
 
     private final int index;
     private final int size;

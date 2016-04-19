@@ -34,8 +34,8 @@ public class Triangle {
 
     private final int vertexCount = 3;
     private final float[] vertexData = new float[]{
-        -1, -1, 0,/**/ 1, 0, 0,
-        +0, +2, 0,/**/ 0, 0, 1,
+        -1, -1, 0,/**/ 1, 1, 0,
+        +0, +2, 0,/**/ 1, 0, 1,
         +1, -1, 0,/**/ 0, 1, 0};
 
     private final int elementCount = 3;
@@ -132,12 +132,11 @@ public class Triangle {
     }
 
     public void update(float dt) {
-        scaleMatrix = FloatUtil.makeScale(scaleMatrix, true, h, w, d);
-
         float factor = seed * dt;
-
-        translateMatrix = FloatUtil.makeTranslation(translateMatrix, true, factor, factor, factor);
+        scaleMatrix = FloatUtil.makeScale(scaleMatrix, true, h, w, d);
+        //translateMatrix = FloatUtil.makeTranslation(translateMatrix, true, factor, factor, factor);
         zRotationMatrix = FloatUtil.makeRotationEuler(zRotationMatrix, 0, factor, factor, factor);
+
         modelToClipMatrix = FloatUtil.multMatrix(scaleMatrix, zRotationMatrix);
 
         transformPointer.asFloatBuffer().put(modelToClipMatrix);

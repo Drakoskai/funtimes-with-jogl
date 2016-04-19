@@ -25,17 +25,14 @@ layout (binding = TRANSFORM0) uniform Transform
 } transform;
 
 // Outgoing color.
-layout (location = BLOCK) out Block
-{
-    vec3 interpolatedColor;
-} block;
+layout (location = 0) out vec3 interpolatedColor;
 
 void main() {
 
     // Normally gl_Position is in Clip Space and we calculate it by multiplying 
     // it with the modelToClipMatrix.
-    gl_Position = transform.modelToClipMatrix * vec4(position, 1);
+    gl_Position = transform.modelToClipMatrix * vec4(position, 1.0);
 
     // We assign the color to the outgoing variable.
-    block.interpolatedColor = color;
+    interpolatedColor = color;
 }
