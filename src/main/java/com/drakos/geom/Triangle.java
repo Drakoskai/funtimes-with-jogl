@@ -22,6 +22,7 @@ import com.jogamp.opengl.util.GLBuffers;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
+import java.util.Random;
 
 /**
  *
@@ -59,7 +60,10 @@ public class Triangle {
     private float w = 0.5f;
     private float d = 0.5f;
 
+    private final float seed;
+
     public Triangle() {
+        seed = new Random().nextFloat();
         mesh = new Geometry();
         mesh.setVertexData(vertexCount, vertexData);
         mesh.setElementData(GL_TRIANGLES, elementCount, elementData);
@@ -129,8 +133,11 @@ public class Triangle {
 
     public void update(float dt) {
         scaleMatrix = FloatUtil.makeScale(scaleMatrix, true, h, w, d);
-        translateMatrix = FloatUtil.makeTranslation(translateMatrix, true, dt, dt, dt);
-        zRotationMatrix = FloatUtil.makeRotationEuler(zRotationMatrix, 0, dt, dt, dt);
+
+        float factor = seed * dt;
+
+        translateMatrix = FloatUtil.makeTranslation(translateMatrix, true, factor, factor, factor);
+        zRotationMatrix = FloatUtil.makeRotationEuler(zRotationMatrix, 0, factor, factor, factor);
         modelToClipMatrix = FloatUtil.multMatrix(scaleMatrix, zRotationMatrix);
 
         transformPointer.asFloatBuffer().put(modelToClipMatrix);
