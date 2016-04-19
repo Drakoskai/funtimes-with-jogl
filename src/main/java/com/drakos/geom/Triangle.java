@@ -33,9 +33,9 @@ public class Triangle {
 
     private final int vertexCount = 3;
     private final float[] vertexData = new float[]{
-        -1, -1, 0,/**/ 1, 0, 0,
-        +0, +2, 0,/**/ 0, 0, 1,
-        +1, -1, 0,/**/ 0, 1, 0};
+        -1, -1,0,/**/ 1, 0, 0,
+        +0, +2,0,/**/ 0, 0, 1,
+        +1, -1,0,/**/ 0, 1, 0};
 
     private final int elementCount = 3;
     private final int[] elementData = new int[]{
@@ -49,7 +49,6 @@ public class Triangle {
     private float[] scaleMatrix = new float[matrixDimensions];
     private float[] zRotationMatrix = new float[matrixDimensions];
     private float[] modelToClipMatrix = new float[matrixDimensions];
-    private float[] translateMatrix = new float[matrixDimensions];
     private ByteBuffer transformPointer;
 
     private int shaderProgId;
@@ -66,8 +65,8 @@ public class Triangle {
     }
 
     public void init(GL4 gl) {
-        Buffer vertexBuffer = mesh.getBuffer(VERTEX);
-        Buffer elementBuffer = mesh.getBuffer(ELEMENT);
+        Buffer vertexBuffer = getBuffer(VERTEX);
+        Buffer elementBuffer = getBuffer(ELEMENT);
 
         gl.glCreateBuffers(GLBuffer.MAX.id(), bufferName);
         gl.glBindBuffer(GL_ARRAY_BUFFER, bufferName.get(VERTEX.id()));
@@ -129,8 +128,7 @@ public class Triangle {
 
     public void update(float dt) {
         scaleMatrix = FloatUtil.makeScale(scaleMatrix, true, h, w, d);
-        translateMatrix = FloatUtil.makeTranslation(translateMatrix, true, dt, dt, dt);
-        zRotationMatrix = FloatUtil.makeRotationEuler(zRotationMatrix, 0, dt, dt, dt);
+        zRotationMatrix = FloatUtil.makeRotationEuler(zRotationMatrix, 0, 0, 0, dt);
         modelToClipMatrix = FloatUtil.multMatrix(scaleMatrix, zRotationMatrix);
 
         transformPointer.asFloatBuffer().put(modelToClipMatrix);
@@ -140,7 +138,23 @@ public class Triangle {
         gl.glBindBufferBase(GL_UNIFORM_BUFFER, Semantic.Uniform.TRANSFORM0, bufferName.get(GLBuffer.TRANSFORM.id()));
         gl.glUseProgram(shaderProgId);
         gl.glBindVertexArray(voaId);
-        gl.glDrawElements(GL_TRIANGLES, mesh.getCount(ELEMENT), GL_UNSIGNED_INT, 0);
+        gl.glDrawElements(GL_TRIANGLES, getCount(ELEMENT), GL_UNSIGNED_INT, 0);
+    }
+
+    public Buffer getBuffer(GLBuffer type) {
+        return mesh.getBuffer(type);
+    }
+
+    public int getCount(GLBuffer type) {
+        return mesh.getCount(type);
+    }
+
+    public int getStride(GLBuffer type) {
+        return mesh.getStride(type);
+    }
+
+    public long getSizeInBytes(GLBuffer type) {
+        return mesh.getSizeInBytes(VERTEX);
     }
 
     public void dispose(GL4 gl) {

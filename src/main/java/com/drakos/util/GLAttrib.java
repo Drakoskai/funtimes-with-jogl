@@ -8,7 +8,7 @@ import static com.jogamp.opengl.GL.GL_FLOAT;
  */
 public enum GLAttrib {
     POSITION(0, 3, GL_FLOAT, 0),
-    //NORMAL(1, 3, GL_FLOAT, POSITION.size * Float.BYTES),//not implemented
+    //NORMAL(1, 3, GL_FLOAT, -1),//not implemented
     COLOR(3, 3, GL_FLOAT, POSITION.size * Float.BYTES);
     //TEXCOORD();
 
