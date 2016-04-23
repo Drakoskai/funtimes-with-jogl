@@ -4,7 +4,6 @@
 #version 450
 // Vertex attributes
 #define POSITION    0
-#define COLOR       3
 // Uniform
 #define TRANSFORM0  1
 // Interfaces
@@ -16,7 +15,6 @@ layout(std140, column_major) uniform;
 layout(std430, column_major) buffer;
 
 layout (location = POSITION) in vec3 position; // Incoming vertex position, Model Space.
-layout (location = COLOR) in vec3 color; // Incoming vertex color.
 
 // Uniform matrix from Model Space to Clip Space.
 layout (binding = TRANSFORM0) uniform Transform
@@ -34,5 +32,5 @@ void main() {
     gl_Position = transform.modelToClipMatrix * vec4(position, 1.0);
 
     // We assign the color to the outgoing variable.
-    interpolatedColor = color;
+    interpolatedColor = vec3(clamp(position, 0, 1));
 }

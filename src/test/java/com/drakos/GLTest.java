@@ -1,10 +1,7 @@
 package com.drakos;
 
-import com.drakos.geom.Triangle;
-import com.drakos.shader.ShaderContainer;
-import com.drakos.util.BufferUtils;
-import static com.drakos.util.GLAttrib.COLOR;
-import static com.drakos.util.GLAttrib.POSITION;
+import com.drakos.geom.Pyramid;
+import com.drakos.util.DrawContext;
 import com.drakos.util.GLDebugOutputListener;
 import com.jogamp.newt.Display;
 import com.jogamp.newt.NewtFactory;
@@ -13,8 +10,6 @@ import com.jogamp.newt.opengl.GLWindow;
 import static com.jogamp.opengl.GL.GL_DONT_CARE;
 import static com.jogamp.opengl.GL2ES2.GL_DEBUG_SEVERITY_HIGH;
 import static com.jogamp.opengl.GL2ES2.GL_DEBUG_SEVERITY_MEDIUM;
-import static com.jogamp.opengl.GL2ES3.GL_COLOR;
-import static com.jogamp.opengl.GL2ES3.GL_DEPTH;
 import com.jogamp.opengl.GL4;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLCapabilities;
@@ -22,9 +17,6 @@ import com.jogamp.opengl.GLContext;
 import com.jogamp.opengl.GLEventListener;
 import com.jogamp.opengl.GLProfile;
 import com.jogamp.opengl.util.Animator;
-import com.jogamp.opengl.util.GLBuffers;
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.LockSupport;
 import org.junit.Test;
@@ -39,17 +31,11 @@ public class GLTest implements GLEventListener {
 
     private GLWindow glWindow;
     private Animator animator;
-    private final ShaderContainer shaderContainer = new ShaderContainer();
-
-    private final IntBuffer vertexArrayName = GLBuffers.newDirectIntBuffer(1);
-    private final Triangle tri = new Triangle();
-    private final Triangle tri2 = new Triangle();
+    private DrawContext dc;
+    private Pyramid tri;
 
     private long start;
     private long now;
-
-    private FloatBuffer clearColor = GLBuffers.newDirectFloatBuffer(new float[]{1.0f, 0.5f, 0.0f, 1.0f});
-    private FloatBuffer clearDepth = GLBuffers.newDirectFloatBuffer(new float[]{1.0f});
 
     @Test
     public void Run() {
@@ -81,17 +67,13 @@ public class GLTest implements GLEventListener {
 
     @Override
     public void init(GLAutoDrawable drawable) {
-        System.out.println("init");
-
         GL4 gl4 = drawable.getGL().getGL4();
 
         initDebug(gl4);
-        initVertexArray(gl4);
-        tri.init(gl4);
-        tri2.init(gl4);
-        int shaderId = shaderContainer.initShaderProgram(gl4, "hello-triangle");
-        tri.setShader(shaderId);
-        tri2.setShader(shaderId);
+        dc = new DrawContext(drawable);
+
+        tri = new Pyramid(dc);
+
         start = System.currentTimeMillis();
     }
 
@@ -102,40 +84,16 @@ public class GLTest implements GLEventListener {
         gl4.glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_MEDIUM, 0, null, true);
     }
 
-    private void initVertexArray(GL4 gl4) {
-
-        gl4.glCreateVertexArrays(1, vertexArrayName);
-
-        gl4.glVertexArrayAttribBinding(vertexArrayName.get(0), POSITION.getIndex(), 0);
-        gl4.glVertexArrayAttribBinding(vertexArrayName.get(0), COLOR.getIndex(), 0);
-
-        gl4.glVertexArrayAttribFormat(vertexArrayName.get(0), POSITION.getIndex(), POSITION.getSize(), POSITION.getType(), false, POSITION.getOffset());
-        gl4.glVertexArrayAttribFormat(vertexArrayName.get(0), COLOR.getIndex(), COLOR.getSize(), COLOR.getType(), false, COLOR.getOffset());
-
-        gl4.glEnableVertexArrayAttrib(vertexArrayName.get(0), POSITION.getIndex());
-        gl4.glEnableVertexArrayAttrib(vertexArrayName.get(0), COLOR.getIndex());
-
-        tri.setVoaId(vertexArrayName.get(0));
-        tri2.setVoaId(vertexArrayName.get(0));
-
-        BufferUtils.destroyDirectBuffer(vertexArrayName);
-    }
-
     @Override
     public void display(GLAutoDrawable drawable) {
-        GL4 gl4 = drawable.getGL().getGL4();
-
-        gl4.glClearBufferfv(GL_COLOR, 0, clearColor);
-        gl4.glClearBufferfv(GL_DEPTH, 0, clearDepth);
+        dc.initFrame(drawable);
 
         now = System.currentTimeMillis();
 
         float delta = (float) (now - start) / 1000;
 
         tri.update(delta);
-        tri2.update(delta);
-        tri.drawTriangle(gl4);
-        tri2.drawTriangle(gl4);
+        dc.drawScene(tri.getMesh());
     }
 
     @Override
@@ -147,17 +105,9 @@ public class GLTest implements GLEventListener {
 
     @Override
     public void dispose(GLAutoDrawable drawable) {
-        System.out.println("dispose");
-
         GL4 gl4 = drawable.getGL().getGL4();
-
-        tri.dispose(gl4);
-        tri2.dispose(gl4);
-
-        gl4.glDeleteVertexArrays(1, vertexArrayName);
-
-        BufferUtils.destroyDirectBuffer(clearColor);
-        BufferUtils.destroyDirectBuffer(clearDepth);
+        dc.dispose();
+        tri.getMesh().dispose(gl4);
 
         isRunning.set(false);
     }

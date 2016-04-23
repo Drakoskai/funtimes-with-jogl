@@ -1,5 +1,6 @@
 package com.drakos.geom;
 
+import com.drakos.util.BufferUtils;
 import com.drakos.util.GLBuffer;
 import static com.drakos.util.GLBuffer.ELEMENT;
 import static com.drakos.util.GLBuffer.VERTEX;
@@ -54,25 +55,23 @@ public class Geometry {
         return this.buffer[type.id()];
     }
 
-    public void setElementData(int mode, int count, int[] src) {
+    public void setElementData(int mode, int[] src) {
         this.setMode(ELEMENT, mode);
         this.buffer[ELEMENT.id()] = GLBuffers.newDirectIntBuffer(src);
         this.size[ELEMENT.id()] = 1;
         this.glType[ELEMENT.id()] = GL.GL_UNSIGNED_INT;
-        this.count[ELEMENT.id()] = count;
+        this.count[ELEMENT.id()] = src.length;
     }
 
-    public void setVertexData(int size, float[] src) {
+    public void setVertexData(float[] src) {
+        int positionElements = 3;
         this.buffer[VERTEX.id()] = GLBuffers.newDirectFloatBuffer(src);
-        this.size[VERTEX.id()] = size;
+        this.size[VERTEX.id()] = src.length * positionElements;
         this.glType[VERTEX.id()] = GL.GL_FLOAT;
-        this.count[VERTEX.id()] = 3;
-        int colorElements = 3;
-        int positionElements = 2;
-        this.stride[VERTEX.id()] = (colorElements + positionElements) * Float.BYTES;
-        
+        this.count[VERTEX.id()] = positionElements;
+        this.stride[VERTEX.id()] = positionElements * Float.BYTES;
     }
-
+    
     public int getStride(GLBuffer type) {
         return stride[type.id()];
     }
@@ -110,5 +109,13 @@ public class Geometry {
                 break;
         }
         return sz;
+    }
+
+    public void destroyBuffers() {
+        for (Buffer buff : this.buffer) {
+            if (buff != null) {
+                BufferUtils.destroyDirectBuffer(buff);
+            }
+        }
     }
 }
