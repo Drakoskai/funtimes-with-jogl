@@ -1,11 +1,13 @@
 package com.drakos;
 
-import com.drakos.geom.Pyramid;
+import com.drakos.geom.Cube;
 import com.drakos.util.DrawContext;
 import com.drakos.util.GLDebugOutputListener;
 import com.jogamp.newt.Display;
 import com.jogamp.newt.NewtFactory;
 import com.jogamp.newt.Screen;
+import com.jogamp.newt.event.KeyEvent;
+import com.jogamp.newt.event.KeyListener;
 import com.jogamp.newt.opengl.GLWindow;
 import static com.jogamp.opengl.GL.GL_DONT_CARE;
 import static com.jogamp.opengl.GL2ES2.GL_DEBUG_SEVERITY_HIGH;
@@ -25,14 +27,14 @@ import org.junit.Test;
  *
  * @author Drakos
  */
-public class GLTest implements GLEventListener {
+public class GLTest implements GLEventListener, KeyListener {
 
     private final AtomicBoolean isRunning = new AtomicBoolean(true);
 
     private GLWindow glWindow;
     private Animator animator;
     private DrawContext dc;
-    private Pyramid tri;
+    private Cube model;
 
     private long start;
     private long now;
@@ -56,6 +58,7 @@ public class GLTest implements GLEventListener {
         glWindow.setContextCreationFlags(GLContext.CTX_OPTION_DEBUG);
         glWindow.setVisible(true);
         glWindow.addGLEventListener(this);
+        glWindow.addKeyListener(this);
 
         animator = new Animator(glWindow);
         animator.start();
@@ -72,7 +75,7 @@ public class GLTest implements GLEventListener {
         initDebug(gl4);
         dc = new DrawContext(drawable);
 
-        tri = new Pyramid(dc);
+        model = new Cube(dc);
 
         start = System.currentTimeMillis();
     }
@@ -87,28 +90,68 @@ public class GLTest implements GLEventListener {
     @Override
     public void display(GLAutoDrawable drawable) {
         dc.initFrame(drawable);
-
         now = System.currentTimeMillis();
-
         float delta = (float) (now - start) / 1000;
 
-        tri.update(delta);
-        dc.drawScene(tri.getMesh());
+        model.update(delta);
+        dc.drawScene(model.getMesh());
     }
 
     @Override
     public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height) {
-        System.out.println("reshape");
         GL4 gl4 = drawable.getGL().getGL4();
         gl4.glViewport(x, y, width, height);
     }
 
     @Override
     public void dispose(GLAutoDrawable drawable) {
-        GL4 gl4 = drawable.getGL().getGL4();
+        dc.initFrame(drawable);
         dc.dispose();
-        tri.getMesh().dispose(gl4);
+        model.getMesh().dispose(dc);
 
         isRunning.set(false);
+    }
+
+    @Override
+    public void keyPressed(KeyEvent e) {
+        float delta = (float) (now - start) / 1000;
+        float[] rotation = model.getRotation();
+        float rotX = rotation[0];
+        float rotY = rotation[1];
+        float rotZ = rotation[2];
+
+        if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+            glWindow.destroy();
+        }
+
+        if (e.getKeyCode() == KeyEvent.VK_Q) {
+            rotZ += 0.1f * delta;
+        }
+
+        if (e.getKeyCode() == KeyEvent.VK_E) {
+            rotZ -= 0.1f * delta;
+        }
+
+        if (e.getKeyCode() == KeyEvent.VK_W) {
+            rotX += 0.1f * delta;
+        }
+
+        if (e.getKeyCode() == KeyEvent.VK_S) {
+            rotX -= 0.1f * delta;
+        }
+
+        if (e.getKeyCode() == KeyEvent.VK_A) {
+            rotY += 0.1f * delta;
+        }
+
+        if (e.getKeyCode() == KeyEvent.VK_D) {
+            rotY -= 0.1f * delta;
+        }
+
+        model.setRotation(rotX, rotY, rotZ);
+    }
+
+    @Override
+    public void keyReleased(KeyEvent e) {
     }
 }

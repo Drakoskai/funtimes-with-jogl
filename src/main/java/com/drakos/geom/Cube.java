@@ -7,21 +7,26 @@ import static com.jogamp.opengl.GL.GL_TRIANGLES;
  *
  * @author Drakos
  */
-public class Pyramid implements Shape {
+public class Cube implements Shape {
 
     private final float[] vertexData = new float[]{
-        -1f, -1f, 0f,
-        0f, -1f, 1f,
-        1f, -1f, 0f,
-        0f, 1f, 0f
+        -1.0f, -1.0f, 1.0f,
+        1.0f, -1.0f, 1.0f,
+        1.0f, 1.0f, 1.0f,
+        -1.0f, 1.0f, 1.0f,
+        -1.0f, -1.0f, -1.0f,
+        1.0f, -1.0f, -1.0f,
+        1.0f, 1.0f, -1.0f,
+        -1.0f, 1.0f, -1.0f
     };
     private final int[] elementData = new int[]{
-        0, 3, 1,
-        1, 3, 2,
-        2, 3, 0,
-        0, 1, 2
+        0, 1, 2, 2, 3, 0,
+        3, 2, 6, 6, 7, 3,
+        7, 6, 5, 5, 4, 7,
+        4, 0, 3, 3, 7, 4,
+        0, 1, 5, 5, 4, 0,
+        1, 5, 6, 6, 2, 1
     };
-
     private final Mesh mesh;
     private final Transform transform;
 
@@ -33,7 +38,7 @@ public class Pyramid implements Shape {
     private float rotY = 0;
     private float rotZ = 0;
 
-    public Pyramid(DrawContext dc) {
+    public Cube(DrawContext dc) {
         mesh = new Mesh(dc, vertexData, elementData, GL_TRIANGLES);
         mesh.shaderProgId = dc.initShader(Pyramid.class, "shape");
         transform = new Transform();

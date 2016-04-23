@@ -14,7 +14,7 @@ precision highp int;
 layout(std140, column_major) uniform;
 layout(std430, column_major) buffer;
 
-layout (location = POSITION) in vec3 position; // Incoming vertex position, Model Space.
+layout (location = POSITION) in vec3 position;
 
 // Uniform matrix from Model Space to Clip Space.
 layout (binding = TRANSFORM0) uniform Transform

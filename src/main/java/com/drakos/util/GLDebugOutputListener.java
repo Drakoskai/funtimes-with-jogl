@@ -14,7 +14,6 @@ public class GLDebugOutputListener implements GLDebugListener {
     public boolean received = false;
 
     public GLDebugOutputListener() {
-
     }
 
     public GLDebugOutputListener(final int source, final int type, final int severity) {
@@ -36,7 +35,6 @@ public class GLDebugOutputListener implements GLDebugListener {
 
     @Override
     public void messageSent(GLDebugMessage event) {
-
         System.err.println("GlDebugOutput.messageSent(): " + event);
         if (null != message && message.equals(event.getDbgMsg()) && id == event.getDbgId()) {
             received = true;

@@ -9,7 +9,7 @@ import com.jogamp.opengl.math.FloatUtil;
 public class Transform {
 
     private float[] scaleMatrix = new float[16];
-    private float[] zRotationMatrix = new float[16];
+    private float[] rotationMatrix = new float[16];
     private float[] modelToClipMatrix = new float[16];
 
     public Transform() {
@@ -21,7 +21,7 @@ public class Transform {
     }
 
     public void rotate(float x, float y, float z) {
-        zRotationMatrix = FloatUtil.makeRotationEuler(zRotationMatrix, 0, x, y, z);
+        rotationMatrix = FloatUtil.makeRotationEuler(rotationMatrix, 0, x, y, z);
     }
 
     public void scale(float x, float y, float z) {
@@ -29,6 +29,6 @@ public class Transform {
     }
 
     public void update() {
-        modelToClipMatrix = FloatUtil.multMatrix(scaleMatrix, zRotationMatrix);
+        modelToClipMatrix = FloatUtil.multMatrix(scaleMatrix, rotationMatrix);
     }
 }

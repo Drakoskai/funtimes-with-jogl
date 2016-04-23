@@ -87,9 +87,9 @@ public class Mesh {
         dc.gl.glDrawElements(GL_TRIANGLES, geometry.getCount(ELEMENT), GL_UNSIGNED_INT, 0);
     }
 
-    public void dispose(GL4 gl) {
-        gl.glUnmapNamedBuffer(vboName.get(GLBuffer.TRANSFORM.id()));
-        gl.glDeleteBuffers(GLBuffer.NAME.id(), vboName);
+    public void dispose(DrawContext dc) {
+        dc.gl.glUnmapNamedBuffer(vboName.get(GLBuffer.TRANSFORM.id()));
+        dc.gl.glDeleteBuffers(GLBuffer.NAME.id(), vboName);
         BufferUtils.destroyDirectBuffer(vboName);
     }
 }
